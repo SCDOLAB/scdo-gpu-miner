@@ -1,0 +1,48 @@
+SCDO shard0 GPU miner for Windows (NVIDIA)          https://scdoscan.io/downloads/shard0/
+=====================================================================================
+
+What it does (all on this PC):
+  bin\geth.exe          core-geth v1.12.23 node for SCDO shard0 (chainId/networkId 5680), syncs from
+                        the public bootnode 82.223.19.88:30368. Its --miner.etherbase = YOUR wallet,
+                        so block rewards (2 SCDO + fees per block) go to your address.
+  bin\scdo-stratum.exe  small stratum -> getwork proxy on 127.0.0.1:3333 (ethproxy and
+                        EthereumStratum/1.0.0). It starts mining only after the node has synced
+                        and pauses if the node loses all peers.
+  Rigel 1.23.2          NVIDIA miner (RTX 20/30/40/50 series incl. RTX 4060 and RTX 5060 Ti).
+                        Downloaded on first start from the official GitHub release
+                        https://github.com/rigelminer/rigel/releases/tag/1.23.2 and checked
+                        against SHA256 0a35d37504e2595f2cd9bb25ae69eae39625be6f0ebbdbaf7427d4c381a7fd79.
+                        Rigel is closed source and takes a 0.7% dev fee on ethash.
+
+Steps
+  1. Unzip to a short folder without spaces/Chinese characters, e.g. C:\scdo-miner
+  2. Windows Security > Virus & threat protection > Manage settings > Exclusions >
+     Add an exclusion > Folder > C:\scdo-miner   (Defender flags every GPU miner as a
+     "potentially unwanted app"; without the exclusion rigel.exe gets deleted).
+  3. Right-click start-mining.bat > Edit, set your address on the line
+         set WALLET=0x...
+     (a MetaMask/EVM address you control; 0x + 40 hex digits). Save.
+  4. Double-click start-mining.bat. First start: downloads Rigel (~56 MB), creates the
+     chain database, starts two small windows "SCDO node" and "SCDO proxy" and waits
+     until the node is synced (1-5 minutes). If Windows Firewall asks about geth.exe,
+     click Allow (private networks).
+  5. Rigel shows the hashrate and "accepted" shares. Blocks you find show up at
+     https://scdoscan.io/#/address?address=<your address>.
+  To stop: double-click stop-mining.bat (stops Rigel/lolMiner, proxy and node of THIS folder),
+  or close the Rigel window, then the "SCDO proxy" and "SCDO node" windows.
+  Logs: logs\rigel.log (hashrate, accepted shares), logs\proxy.log (shares, "BLOCK FOUND"),
+  logs\geth.log (node). shard0 difficulty is low, so one GPU finds a block almost every
+  second at first; the proxy submits at most one block per second (block timestamps must not
+  run ahead of the clock, otherwise other nodes reject them) and counts the rest as shares.
+
+Second PC (e.g. RTX 5060 Ti): copy the same folder and do the same steps (it runs its
+own node; the chain is small). Alternative: on PC 1 set LISTEN=0.0.0.0:3333, on PC 2 set
+POOL=<PC1-LAN-IP>:3333 - then PC 2 only runs Rigel and rewards go to PC 1's wallet.
+
+Other miners: the proxy accepts any ethash stratum miner, e.g.
+  lolMiner.exe --algo ETHASH --pool 127.0.0.1:3333 --user 0xYOURWALLET --ethstratum ETHPROXY
+Algorithm is plain Ethash (30000-block epochs, NOT etchash); epoch 0 DAG is about 1 GB.
+
+Files: data\ = chain database (+ ~2 GB ethash DAG files after the first found block),
+logs\rigel.log = miner log. Nothing here holds private keys: only your public address
+is used. Mining this test chain has no guaranteed value.
