@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# SCDO shard0 GPU miner v1.0.2 (NVIDIA, Linux) - edit ONLY the next line (or run: WALLET=0x... ./start-mining.sh)
+# SCDO shard0 GPU miner v1.0.3 (NVIDIA, Linux) - edit ONLY the next line (or run: WALLET=0x... ./start-mining.sh)
 WALLET="${WALLET:-0xYOUR_WALLET_ADDRESS}"
+# Node service fee payout address (节点服务费收款地址). Empty = same as WALLET. The node registers with
+# --identity scdo-node:<address>; the SCDO bootnode measures its online time (https://scdoscan.io/nodes/).
+# Set PAYOUT=0x... for a different address, or PAYOUT=off to not register. Only a PUBLIC address, never a key.
+PAYOUT="${PAYOUT:-}"
 # Optional: POOL=host:port mines against another stratum proxy instead of a local node
 # (rewards then go to THAT node's wallet). LISTEN=0.0.0.0:3333 lets LAN PCs use this proxy.
 POOL="${POOL:-}"
@@ -21,6 +25,17 @@ if ! [[ "$WALLET" =~ ^0x[0-9a-fA-F]{40}$ ]] || [[ "$WALLET" =~ ^0x0{40}$ ]]; the
   echo "Set your wallet address: edit WALLET= in $0 or run WALLET=0x... $0"; exit 1
 fi
 echo "Wallet: $WALLET"
+[ -z "$PAYOUT" ] && PAYOUT="$WALLET"
+IDENT=()
+if [ "$PAYOUT" = "off" ] || [ "$PAYOUT" = "OFF" ]; then
+  echo "Node service fee: not registered (PAYOUT=off)"
+elif [[ "$PAYOUT" =~ ^0x[0-9a-fA-F]{40}$ ]] && ! [[ "$PAYOUT" =~ ^0x0{40}$ ]]; then
+  IDENT=(--identity "scdo-node:$PAYOUT")
+  if [ -z "$POOL" ]; then echo "Node service fee payout address: $PAYOUT (see https://scdoscan.io/nodes/)"
+  else echo "Note: POOL is set, so no local node runs here and no node service fee is measured for this PC."; fi
+else
+  echo "PAYOUT must be a 0x address (42 characters), empty (= WALLET) or off. Current value: '$PAYOUT'"; exit 1
+fi
 
 if [ ! -x "$RIGEL" ]; then
   tgz="miner/rigel-${RIGEL_VER}-linux.tar.gz"
@@ -57,6 +72,7 @@ if [ -z "$POOL" ]; then
   # --gcmode archive: the state of every block is on disk at once, so a crash / power cut / kill -9
   # cannot make the node lose its state and fall back to block 0 ("Head state missing").
   ./bin/geth --datadir data --networkid 5680 --syncmode full --gcmode archive --port 30368 --bootnodes "$BOOT" \
+    ${IDENT[@]+"${IDENT[@]}"} \
     --http --http.addr 127.0.0.1 --http.port 18545 --http.api eth,net,web3,miner \
     --authrpc.port 18551 --ipcdisable \
     --miner.etherbase "$WALLET" --miner.gaslimit 30000000 --miner.gasprice 1000000 --txpool.pricelimit 1000000 \

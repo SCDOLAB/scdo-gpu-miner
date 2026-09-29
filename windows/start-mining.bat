@@ -1,8 +1,15 @@
 @echo off
 setlocal EnableExtensions
 rem ===================================================================
-rem  SCDO shard0 GPU miner (NVIDIA) v1.0.2  -  edit ONLY the next line:
+rem  SCDO shard0 GPU miner (NVIDIA) v1.0.3  -  edit ONLY the next line:
 set WALLET=0xYOUR_WALLET_ADDRESS
+rem ===================================================================
+rem  Node service fee payout address (see https://scdoscan.io/nodes/):
+rem   empty = same as WALLET (normal). 0x... = pay the node service fee to
+rem   another address. off = do not register this node. The node is started
+rem   with --identity scdo-node:ADDRESS so the SCDO bootnode can measure its
+rem   online time. Only a PUBLIC address - never a private key or phrase.
+set PAYOUT=
 rem ===================================================================
 rem  Optional, normally leave as is:
 rem   POOL   empty = run your own node here, block rewards go to WALLET.
@@ -20,7 +27,8 @@ title SCDO shard0 GPU miner
 if not exist logs mkdir logs
 if exist "logs\stop.flag" del "logs\stop.flag"
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\check-wallet.ps1" -Wallet "%WALLET%"
+if "%PAYOUT%"=="" set "PAYOUT=%WALLET%"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\check-wallet.ps1" -Wallet "%WALLET%" -Payout "%PAYOUT%"
 if errorlevel 1 goto fail
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\get-miner.ps1"
 if errorlevel 1 goto fail

@@ -1,5 +1,5 @@
 @echo off
-rem SCDO shard0 GPU miner v1.0.2 - stops the miner (Rigel / lolMiner), the stratum proxy and the node
+rem SCDO shard0 GPU miner v1.0.3 - stops the miner (Rigel / lolMiner), the stratum proxy and the node
 rem started from THIS folder. The node (geth) is stopped GRACEFULLY (Ctrl+C, it saves its state);
 rem only if it does not exit within 60 s it is force-killed.
 cd /d "%~dp0"

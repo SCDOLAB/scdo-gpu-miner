@@ -30,12 +30,17 @@ Details: [windows/README.txt](windows/README.txt).
 **Linux:**
 
 ```bash
-tar xzf scdo-shard0-gpu-miner-v1.0.2-linux-amd64.tar.gz && cd scdo-shard0-gpu-miner
+tar xzf scdo-shard0-gpu-miner-v1.0.3-linux-amd64.tar.gz && cd scdo-shard0-gpu-miner
 WALLET=0xYOUR_ADDRESS ./start-mining.sh
 ```
 
 Needs an NVIDIA driver (RTX 50 series: 570+), `curl` and `sha256sum`. Stop with one Ctrl+C and wait: the
 script stops the node gracefully (SIGINT, `kill -9` only after 60 s). Details: [linux/README.txt](linux/README.txt).
+
+**Node service fee (since v1.0.3):** the start scripts start the node with `--identity scdo-node:<address>`, so the
+SCDO bootnode can measure its online time. The node service fee is paid by uptime (rules, node list and public
+ledger: https://scdoscan.io/nodes/). The address is `PAYOUT` (empty = your `WALLET`; another `0x` address; or `off`
+to not register). Only a public address goes into the node name, never a private key.
 
 Your found blocks show up on https://scdoscan.io under your address. The package never asks for
 or stores a private key; only your public address is used.
@@ -54,7 +59,25 @@ The binaries (`geth`, `scdo-stratum`) are only in the release archives, not in g
 [SCDOLAB/scdo-shard0](https://github.com/SCDOLAB/scdo-shard0) (branch `scdo`: core-geth v1.12.23 +
 `cmd/scdostratum`), under the GNU GPL v3 / LGPL v3 like upstream core-geth.
 
-## Release v1.0.2 (2026-09-29)
+## Release v1.0.3 (2026-09-29)
+
+| File | SHA256 |
+|---|---|
+| `scdo-shard0-gpu-miner-v1.0.3-windows-amd64.zip` | `fb0847617a2da697e6c69214050baa87c5c4bce5f684db22309fc387d5701eed` |
+| `scdo-shard0-gpu-miner-v1.0.3-linux-amd64.tar.gz` | `a151e1d592e63104a3622c8b7bda1db7c5c125e9689cacd4d207ff15618d3b2b` |
+
+Also at https://scdoscan.io/downloads/shard0/ (see its `SHA256SUMS`). Changes in v1.0.3:
+
+- Node service fee registration: `start-mining.bat` has a new line `set PAYOUT=` (empty = same as `WALLET`,
+  another `0x` address, or `off`); `tools/run-node.bat` starts the node with `--identity scdo-node:<address>`.
+  `start-mining.sh` does the same on Linux (`PAYOUT=0x... ./start-mining.sh`, default = `WALLET`, `PAYOUT=off`).
+- `tools/check-wallet.ps1` also checks the `PAYOUT` value. README EN/CN describe the node service fee.
+- Binaries (`geth`, `scdo-stratum`) are unchanged from v1.0.2.
+
+Upgrade from v1.0.2: stop with `stop-mining.bat` (Linux: one Ctrl+C), copy the new files over the old folder
+(keep `data\` and put your `WALLET` line into the new start script), start again.
+
+## Release v1.0.2 (2026-09-29, previous)
 
 | File | SHA256 |
 |---|---|
@@ -73,7 +96,7 @@ Also at https://scdoscan.io/downloads/shard0/ (see its `SHA256SUMS`). Changes in
 Upgrade from v1.0.1: stop with the old `stop-mining.bat`, copy the new files over the old folder (keep `data\`
 and your `WALLET` line), start again. The binaries are unchanged from v1.0.1.
 
-## Release v1.0.1 (2026-09-29, previous)
+## Release v1.0.1 (2026-09-29, older)
 
 | File | SHA256 |
 |---|---|
@@ -101,6 +124,8 @@ SCDO shard0（chainId 5680）GPU 挖矿包的脚本。成品包请从 https://sc
 **Windows：** 解压到 `C:\scdo-miner` 这类简单路径 → 在 Windows 安全中心把这个文件夹加入排除项 → 编辑 `start-mining.bat`，写上 `set WALLET=0x你的地址` → 双击运行。出现 SmartScreen“Windows 已保护你的电脑”时，点“更多信息”再点“仍要运行”（文件没有代码签名）。**停止时一定要双击 `stop-mining.bat`**（先停矿机和代理，再正常关闭节点，60 秒后才强制结束），不要用 X 关闭“SCDO node”窗口。v1.0.2 起节点使用 `--gcmode archive`，强制结束后不再退回到旧区块（但请不要依赖节点“自己恢复”）。详见 [windows/README-CN.txt](windows/README-CN.txt)。
 
 **Linux：** `WALLET=0x你的地址 ./start-mining.sh`，需要 NVIDIA 驱动、curl、sha256sum。停止：按一次 Ctrl+C 并等待节点正常退出。
+
+**节点服务费（v1.0.3 起）：** 启动脚本会让节点带上 `--identity scdo-node:<地址>` 启动，SCDO 引导节点据此统计在线时长，节点服务费按在线时长支付（规则、节点列表和公开账本见 https://scdoscan.io/nodes/）。地址由 `PAYOUT` 决定：留空 = 使用 `WALLET`；也可填另一个 `0x` 地址；填 `off` 表示不登记。只填公开地址，切勿填私钥或助记词。
 
 挖到的块可在 https://scdoscan.io 用你的地址查询。挖矿包不会要求也不会保存私钥。
 

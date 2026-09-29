@@ -1,4 +1,4 @@
-SCDO shard0 GPU miner for Windows (NVIDIA) v1.0.2   https://scdoscan.io/downloads/shard0/
+SCDO shard0 GPU miner for Windows (NVIDIA) v1.0.3   https://scdoscan.io/downloads/shard0/
 =====================================================================================
 
 What it does (all on this PC):
@@ -22,6 +22,10 @@ Steps
   3. Right-click start-mining.bat > Edit, set your address on the line
          set WALLET=0x...
      (a MetaMask/EVM address you control; 0x + 40 hex digits). Save.
+     Node service fee (optional line  set PAYOUT=  just below): your node registers itself with
+     --identity scdo-node:<address> so the SCDO bootnode can measure its online time; the node
+     service fee is paid by online time (rules: https://scdoscan.io/nodes/). Leave PAYOUT empty to
+     use your WALLET address, set another 0x address, or set PAYOUT=off to not register.
   4. Double-click start-mining.bat. First start: downloads Rigel (~56 MB), creates the
      chain database, starts two small windows "SCDO node" and "SCDO proxy" and waits
      until the node is synced (1-5 minutes). If Windows Firewall asks about geth.exe,
@@ -52,6 +56,12 @@ Algorithm is plain Ethash (30000-block epochs, NOT etchash); epoch 0 DAG is abou
 Files: data\ = chain database (+ ~2 GB ethash DAG files after the first found block),
 logs\rigel.log = miner log. Nothing here holds private keys: only your public address
 is used. Mining this test chain has no guaranteed value.
+
+Changes in v1.0.3 (29 September 2026)
+  - Node service fee payout address: start-mining.bat has a new line  set PAYOUT=  (empty = WALLET);
+    tools\run-node.bat starts the node with --identity scdo-node:<address> (see https://scdoscan.io/nodes/).
+  Upgrading from v1.0.2: stop with stop-mining.bat, copy the new files over the old folder
+  (keep data\ and put your WALLET line into the new start-mining.bat), start again.
 
 Changes in v1.0.2 (29 September 2026)
   - Node runs with --gcmode archive (tools\run-node.bat): a force-killed/crashed node no longer
