@@ -1,4 +1,4 @@
-SCDO shard0 GPU miner for Windows (NVIDIA)          https://scdoscan.io/downloads/shard0/
+SCDO shard0 GPU miner for Windows (NVIDIA) v1.0.2   https://scdoscan.io/downloads/shard0/
 =====================================================================================
 
 What it does (all on this PC):
@@ -25,11 +25,17 @@ Steps
   4. Double-click start-mining.bat. First start: downloads Rigel (~56 MB), creates the
      chain database, starts two small windows "SCDO node" and "SCDO proxy" and waits
      until the node is synced (1-5 minutes). If Windows Firewall asks about geth.exe,
-     click Allow (private networks).
+     click Allow (private networks). If a blue "Windows protected your PC" (SmartScreen)
+     window appears, click "More info" and then "Run anyway" (the files are not code-signed).
   5. Rigel shows the hashrate and "accepted" shares. Blocks you find show up at
      https://scdoscan.io/#/address?address=<your address>.
-  To stop: double-click stop-mining.bat (stops Rigel/lolMiner, proxy and node of THIS folder),
-  or close the Rigel window, then the "SCDO proxy" and "SCDO node" windows.
+  To stop: ALWAYS double-click stop-mining.bat. It stops Rigel/lolMiner and the proxy of THIS
+  folder, then stops the node gracefully (sends it Ctrl+C, the node saves its state; it is
+  force-killed only if it has not exited after 60 s). Result: logs\stop-node.log.
+  Do NOT close the "SCDO node" window with X and do not end geth.exe in Task Manager: a
+  force-killed node can lose its latest state. (v1.0.2 runs the node with --gcmode archive,
+  which keeps every block's state on disk, so a force-kill no longer sends it back to block 0
+  (tested) - but do not rely on the node "recovering by itself"; please use stop-mining.bat.)
   Logs: logs\rigel.log (hashrate, accepted shares), logs\proxy.log (shares, "BLOCK FOUND"),
   logs\geth.log (node). shard0 difficulty is low, so one GPU finds a block almost every
   second at first; the proxy submits at most one block per second (block timestamps must not
@@ -46,3 +52,11 @@ Algorithm is plain Ethash (30000-block epochs, NOT etchash); epoch 0 DAG is abou
 Files: data\ = chain database (+ ~2 GB ethash DAG files after the first found block),
 logs\rigel.log = miner log. Nothing here holds private keys: only your public address
 is used. Mining this test chain has no guaranteed value.
+
+Changes in v1.0.2 (29 September 2026)
+  - Node runs with --gcmode archive (tools\run-node.bat): a force-killed/crashed node no longer
+    falls back to block 0 ("Head state missing"). Needs about 25 MB more disk per day.
+  - stop-mining.bat stops the node gracefully (Ctrl+C, tools\stop-node.ps1) with a 60 s
+    force-kill fallback, instead of killing it at once.
+  Upgrading from v1.0.1: stop with the OLD stop-mining.bat, copy the new files over the old folder
+  (keep data\ and your WALLET line), start again. Checksums: SHA256SUMS in this folder.

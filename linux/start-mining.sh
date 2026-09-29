@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SCDO shard0 GPU miner (NVIDIA, Linux) - edit ONLY the next line (or run: WALLET=0x... ./start-mining.sh)
+# SCDO shard0 GPU miner v1.0.2 (NVIDIA, Linux) - edit ONLY the next line (or run: WALLET=0x... ./start-mining.sh)
 WALLET="${WALLET:-0xYOUR_WALLET_ADDRESS}"
 # Optional: POOL=host:port mines against another stratum proxy instead of a local node
 # (rewards then go to THAT node's wallet). LISTEN=0.0.0.0:3333 lets LAN PCs use this proxy.
@@ -32,8 +32,20 @@ if [ ! -x "$RIGEL" ]; then
   tar -xzf "$tgz" -C miner
 fi
 
-pids=()
-cleanup() { for p in "${pids[@]}"; do kill "$p" 2>/dev/null; done; wait; }
+pids=(); GETH_PID=; RIGEL_PID=
+# Stop order: proxy first, then the node GRACEFULLY (SIGINT = Ctrl+C, geth writes its state to disk);
+# force-kill only if geth has not exited after 60 s.
+cleanup() {
+  trap '' INT TERM
+  if [ -n "$RIGEL_PID" ]; then pkill -P "$RIGEL_PID" 2>/dev/null; kill "$RIGEL_PID" 2>/dev/null; fi
+  for p in "${pids[@]}"; do [ "$p" != "$GETH_PID" ] && kill "$p" 2>/dev/null; done
+  if [ -n "$GETH_PID" ] && kill -0 "$GETH_PID" 2>/dev/null; then
+    echo "Stopping the node gracefully ..."; kill -INT "$GETH_PID" 2>/dev/null
+    for i in $(seq 1 60); do kill -0 "$GETH_PID" 2>/dev/null || break; sleep 1; done
+    kill -0 "$GETH_PID" 2>/dev/null && { echo "node did not exit in 60 s - killing it"; kill -9 "$GETH_PID"; }
+  fi
+  wait 2>/dev/null
+}
 trap cleanup EXIT
 trap 'exit 130' INT TERM
 
@@ -42,12 +54,14 @@ if [ -z "$POOL" ]; then
     ./bin/geth --datadir data init scdo-shard0-genesis.json > logs/geth-init.log 2>&1 || { cat logs/geth-init.log; exit 1; }
   fi
   # No --mine: the proxy calls miner_start(0) (getwork only) once the node is synced.
-  ./bin/geth --datadir data --networkid 5680 --syncmode full --port 30368 --bootnodes "$BOOT" \
+  # --gcmode archive: the state of every block is on disk at once, so a crash / power cut / kill -9
+  # cannot make the node lose its state and fall back to block 0 ("Head state missing").
+  ./bin/geth --datadir data --networkid 5680 --syncmode full --gcmode archive --port 30368 --bootnodes "$BOOT" \
     --http --http.addr 127.0.0.1 --http.port 18545 --http.api eth,net,web3,miner \
     --authrpc.port 18551 --ipcdisable \
     --miner.etherbase "$WALLET" --miner.gaslimit 30000000 --miner.gasprice 1000000 --txpool.pricelimit 1000000 \
     --ethash.dagdir data/ethash-dag --ethash.cachedir data/ethash-cache >> logs/geth.log 2>&1 &
-  pids+=($!)
+  GETH_PID=$!; pids+=($!)
   ./bin/scdo-stratum -rpc "$RPC" -listen "$LISTEN" -autostart -ref-rpc https://scdoscan.io/rpc/0 >> logs/proxy.log 2>&1 &
   pids+=($!)
   echo "Node + proxy started (logs/geth.log, logs/proxy.log). Waiting for sync ..."
@@ -63,9 +77,11 @@ else
   STRATUM="$POOL"
 fi
 echo "Starting Rigel against ethproxy+tcp://$STRATUM (Ctrl+C stops everything; Rigel is restarted if it exits)"
+# Rigel runs in the background + "wait" so Ctrl+C / kill are handled at once (then cleanup stops the node gracefully).
 while true; do
-  "./$RIGEL" -a ethash -o "ethproxy+tcp://$STRATUM" -u "$WALLET" -w "$WORKER" --log-file logs/rigel.log
-  rc=$?
+  "./$RIGEL" -a ethash -o "ethproxy+tcp://$STRATUM" -u "$WALLET" -w "$WORKER" --log-file logs/rigel.log &
+  RIGEL_PID=$!
+  wait "$RIGEL_PID"; rc=$?; RIGEL_PID=
   echo "$(date '+%F %T') Rigel exited with code $rc, restarting in 10 s" | tee -a logs/rigel-restarts.log
-  sleep 10
+  sleep 10 & wait $!
 done

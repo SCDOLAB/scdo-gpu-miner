@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 rem ===================================================================
-rem  SCDO shard0 GPU miner (NVIDIA)  -  edit ONLY the next line:
+rem  SCDO shard0 GPU miner (NVIDIA) v1.0.2  -  edit ONLY the next line:
 set WALLET=0xYOUR_WALLET_ADDRESS
 rem ===================================================================
 rem  Optional, normally leave as is:
@@ -51,7 +51,7 @@ set "STRATUM=127.0.0.1:3333"
 echo.
 echo Starting Rigel (NVIDIA miner, 0.7%% dev fee) against ethproxy+tcp://%STRATUM% ...
 echo Block rewards: 2 SCDO per block to the wallet of the node (%WALLET% when POOL is empty).
-echo To stop everything: run stop-mining.bat (or close this window, then "SCDO proxy" and "SCDO node").
+echo To stop everything: run stop-mining.bat. Do NOT close the "SCDO node" window with X.
 echo Rigel is restarted automatically if it exits or crashes.
 echo.
 :rigelloop
@@ -60,7 +60,7 @@ set RC=%errorlevel%
 if exist "logs\stop.flag" goto stopped
 echo %date% %time% Rigel exited with code %RC%, restarting in 10 s>> "logs\rigel-restarts.log"
 echo.
-echo Rigel exited (code %RC%) - restarting in 10 seconds. Run stop-mining.bat or close this window to stop.
+echo Rigel exited (code %RC%) - restarting in 10 seconds. Run stop-mining.bat to stop.
 ping -n 11 127.0.0.1 >nul
 if exist "logs\stop.flag" goto stopped
 if not exist "%~dp0miner\rigel-1.23.2-win\rigel.exe" (
