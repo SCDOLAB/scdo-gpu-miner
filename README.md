@@ -107,7 +107,7 @@ Changes in v1.0.1: `scdo-stratum` 1.0.1
 (at most one block per wall-clock second, pauses if the local head runs more than 30 blocks ahead of the network, higher submit limit, log
 files), a restart loop for the miner, and `stop-mining.bat`.
 
-Mining SCDO shard 0 has no guaranteed value. The official site is **https://scdoscan.io** only.
+The official site is **https://scdoscan.io**.
 
 ---
 
@@ -131,4 +131,4 @@ SCDO shard0（chainId 5680）GPU 挖矿包的脚本。成品包请从 https://sc
 
 二进制文件只在 Releases 压缩包里；源码在 [SCDOLAB/scdo-shard0](https://github.com/SCDOLAB/scdo-shard0)（`scdo` 分支），许可证与上游 core-geth 相同（GPL v3 / LGPL v3）。
 
-挖 shard0 不保证有任何价值。官方网站只有 **https://scdoscan.io**。
+官方网站：**https://scdoscan.io**。

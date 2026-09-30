@@ -55,7 +55,7 @@ Algorithm is plain Ethash (30000-block epochs, NOT etchash); epoch 0 DAG is abou
 
 Files: data\ = chain database (+ ~2 GB ethash DAG files after the first found block),
 logs\rigel.log = miner log. Nothing here holds private keys: only your public address
-is used. Mining this test chain has no guaranteed value.
+is used. The official site is https://scdoscan.io.
 
 Changes in v1.0.3 (29 September 2026)
   - Node service fee payout address: start-mining.bat has a new line  set PAYOUT=  (empty = WALLET);
